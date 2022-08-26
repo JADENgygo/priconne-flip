@@ -1,0 +1,112 @@
+<html>
+	<head>
+		<meta charSet="utf-8" />
+		<meta name="description" content="プリコネRの反転パズル" />
+		<meta name="twitter:card" content="summary" />
+		<meta name="twitter:site" content="@JADENgygo" />
+		<meta property="og:url" content="https://priconne-flip.vercel.app" />
+		<meta property="og:title" content="プリコネフリップ" />
+		<meta property="og:description" content="プリコネRの反転パズル" />
+		<meta property="og:image" content="https://priconne-flip.vercel.app/img/peko.png" />
+		<!-- <meta name="viewport" content="width=690" /> -->
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>プリコネフリップ</title>
+		<link rel="icon" href="img/peko.png" />
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+	</head>
+	<body>
+    <div id="game"></div>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+		<script>
+      class Game extends Phaser.Scene {
+        constructor() {
+          super({key: "Game"});
+        }
+        init() {
+        }
+        preload() {
+          this.load.image("peko", "img/peko_.png");
+          this.load.image("kyaru", "img/kyaru.png");
+        }
+        create() {
+          const canvas = this.sys.game.canvas;
+
+          this.add.graphics().fillStyle(0xffffff, 1).fillRect(0, 0, canvas.width, canvas.height);
+
+          const title = this.add.text(0, 0, "プリコネフリップ", {font: "bold 30px sans-serif", fill: "#000"});
+          title.x = (canvas.width - title.width) / 2;
+          title.y = canvas.height / 10;
+
+          const fronts = [];
+          const backs = [];
+          const originalSize = 400;
+          const scale = Math.min(canvas.width / originalSize / 3 * 0.7, canvas.height / originalSize / 3 * 0.7);
+          for (let y = 0; y < 3; ++y) {
+            fronts[y] = [];
+            backs[y] = [];
+            for (let x = 0; x < 3; ++x) {
+              const front = this.add.image(0, 0, "peko").setScale(scale).setInteractive();
+              const flip = () => {
+                fronts[y][x].visible = !fronts[y][x].visible;
+                backs[y][x].visible = !backs[y][x].visible;
+                const up = y - 1;
+                if (0 <= up) {
+                  fronts[up][x].visible = !fronts[up][x].visible;
+                  backs[up][x].visible = !backs[up][x].visible;
+                }
+                const down = y + 1;
+                if (down <= 2) {
+                  fronts[down][x].visible = !fronts[down][x].visible;
+                  backs[down][x].visible = !backs[down][x].visible;
+                }
+                const left = x - 1;
+                if (0 <= left) {
+                  fronts[y][left].visible = !fronts[y][left].visible;
+                  backs[y][left].visible = !backs[y][left].visible;
+                }
+                const right = x + 1;
+                if (right <= 2) {
+                  fronts[y][right].visible = !fronts[y][right].visible;
+                  backs[y][right].visible = !backs[y][right].visible;
+                }
+              };
+              front.on("pointerdown", flip);
+              front.x = canvas.width / 2 + front.width * scale * (x - 1);
+              front.y = canvas.height * 1.1 / 2 + front.height * scale * (y - 1);
+              const mask = this.add.graphics().fillStyle(0x000, 1).fillCircle(front.x, front.y, front.width * scale / 2);
+              mask.visible = false;
+              front.setMask(mask.createGeometryMask());
+              fronts[y][x] = front;
+
+              const back = this.add.image(0, 0, "kyaru").setScale(scale).setInteractive();
+              back.on("pointerdown", flip);
+              back.x = canvas.width / 2 + back.width * scale * (x - 1);
+              back.y = canvas.height * 1.1 / 2 + back.height * scale * (y - 1);
+              back.setMask(mask.createGeometryMask());
+              back.visible = false;
+              backs[y][x] = back;
+            }
+          }
+        }
+        update() {
+        }
+      }
+
+			const config = {
+				parent: "game",
+				type: Phaser.AUTO,
+        width: "100",
+        height: "100",
+				physics: {
+					default: 'arcade',
+					arcade: {
+						gravity: { y: 200 }
+					}
+				},
+        scene: [Game]
+			};
+			const game = new Phaser.Game(config);
+		</script>
+	</body>
+</html>
